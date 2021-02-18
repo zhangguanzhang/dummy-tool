@@ -34,7 +34,7 @@ func init() {
 func parseAndValidateFlags() (*app.Conf, error) {
 	flag.Usage = func() {
 		fmt.Fprintf(os.Stderr, "Usage of %s:\n", os.Args[0])
-		fmt.Fprint(os.Stderr, "Runs a tool at initContainer or a Container in kubernetes pod\n")
+		fmt.Fprint(os.Stderr, "Run as a dummy interface tool at initContainer or a Container in kubernetes pod\n")
 		flag.PrintDefaults()
 	}
 
@@ -45,11 +45,11 @@ func parseAndValidateFlags() (*app.Conf, error) {
 		versionPrt bool
 	)
 
-	flag.StringVar(&LocalIPStr, "localip", "", "comma-separated string of ip addresses to bind localdns process to")
-	flag.StringVar(&params.HealthPort, "health-port", "8080", "port used by health plugin, ex: 0.0.0.0:8080")
-	flag.BoolVar(&params.SetupInterface, "setupinterface", true, "indicates whether network interface should be setup")
-	flag.StringVar(&params.InterfaceName, "interfacename", "nodelocaldns", "name of the interface to be created")
-	flag.DurationVar(&params.Interval, "checkinterval", time.Second*5, "interval(in seconds) to check for interface status and addr")
+	flag.StringVar(&LocalIPStr, "local-ip", "", "comma-separated string of ip addresses to bind localdns process to")
+	flag.StringVar(&params.HealthPort, "health-port", "8080", "port used by health check, ex: 0.0.0.0:8080")
+	flag.BoolVar(&params.SetupInterface, "setup-interface", true, "indicates whether network interface should be setup")
+	flag.StringVar(&params.InterfaceName, "interface-name", "nodelocaldns", "name of the interface to be created")
+	flag.DurationVar(&params.Interval, "check-interval", time.Second*5, "interval(in seconds) to check for interface status and addr")
 	flag.BoolVar(&versionPrt, "version", false, "print version info and exit")
 	flag.Parse()
 

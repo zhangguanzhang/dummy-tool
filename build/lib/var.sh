@@ -17,12 +17,19 @@ BUILD::getVersion(){
     fi
   else #默认取最新的tag
     TAG_COMMITID=$("${git[@]}" rev-list --tags --max-count=1)
-    TAG=$("${git[@]}" describe --tags ${TAG_COMMITID})
+    # 没有tag的时候
+    if [ -n "$TAG_COMMITID" ]; then
+      TAG=$("${git[@]}" describe --tags ${TAG_COMMITID})
+    fi
   fi
 
-
-  "${git[@]}" checkout $TAG 2>/dev/null
-  BUILD_VERSION=${TAG}
+  if [ -n "$TAG" ];then
+    "${git[@]}" checkout $TAG 2>/dev/null
+    BUILD_VERSION=${TAG}
+  else
+    TAG=v0.0
+    BUILD_VERSION="v0.0"
+  fi
 
   if [ -z "$("${git[@]}" status --porcelain 2>/dev/null)" ];then
     GIT_TREE_STATE='clean'
@@ -34,7 +41,9 @@ BUILD::getVersion(){
 
   if [ "${HEAD}" != "${TAG_COMMITID}" ];then
     #tag的基础上改动，所以tag版本号-dirty
-    BUILD_VERSION+="-dirty"
+    if [ -n "${TAG_COMMITID}" ];then
+      BUILD_VERSION+="-dirty"
+    fi
     COMMIT_ID=${HEAD}
   else
     COMMIT_ID=${TAG_COMMITID}

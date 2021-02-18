@@ -1,6 +1,7 @@
 package app
 
 import (
+	"context"
 	"fmt"
 	"github.com/zhangguanzhang/dummy-tool/pkg/netif"
 	"log"
@@ -36,33 +37,23 @@ func (c *App) Init() {
 	if c.params.SetupInterface {
 		c.netifHandle = netif.NewNetifManager(c.params.LocalIPs)
 	}
-	if !strings.HasPrefix(":", c.params.HealthPort) {
+	if c.params.HealthPort != "" && !strings.Contains(c.params.HealthPort, ":") {
 		c.params.HealthPort = ":" + c.params.HealthPort
 	}
 }
 
 func (c *App) RunApp() {
+
+	var srvShutdown func(ctx context.Context) error
+
 	c.setupNetworking()
 	// if not set Interval, will use for a intContianer just setup and exit
 	if c.params.Interval != 0 {
 		go c.runPeriodic()
 
-		mux := http.NewServeMux()
-		mux.Handle("/health", http.HandlerFunc(
-			func(w http.ResponseWriter, r *http.Request) {
-				fmt.Fprintf(w, "ok")
-			},
-		))
-		srv := &http.Server{
-			Addr:    c.params.HealthPort,
-			Handler: mux,
+		if c.params.HealthPort != "" {
+			srvShutdown = c.healthCheck()
 		}
-		go func() {
-			log.Printf("[INFO] Start http health at: %s", c.params.HealthPort)
-			if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
-				log.Fatal(err)
-			}
-		}()
 
 		sigCh := make(chan os.Signal)
 		signal.Notify(sigCh)
@@ -70,7 +61,11 @@ func (c *App) RunApp() {
 		// Unlikely to reach here, if we did it is because coremain exited and the signal was not trapped.
 		log.Printf("[INFO] Received signal: %s, tearing down", s.String())
 
-		_ = srv.Shutdown(nil)
+		if srvShutdown != nil {
+			ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+			defer cancel()
+			_ = srvShutdown(ctx)
+		}
 
 		if err := c.TeardownNetworking(); err != nil {
 			log.Printf("[ERROR] While TeardownNetworking: %v", err)
@@ -120,4 +115,26 @@ func (c *App) TeardownNetworking() error {
 	}
 
 	return err
+}
+
+func (c *App) healthCheck() func(ctx context.Context) error {
+
+	mux := http.NewServeMux()
+	mux.Handle("/health", http.HandlerFunc(
+		func(w http.ResponseWriter, r *http.Request) {
+			fmt.Fprintf(w, "ok")
+		},
+	))
+	srv := &http.Server{
+		Addr:    c.params.HealthPort,
+		Handler: mux,
+	}
+	go func() {
+		log.Printf("[INFO] Start http health at %s", c.params.HealthPort)
+		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+			log.Fatal(err)
+		}
+	}()
+
+	return srv.Shutdown
 }
