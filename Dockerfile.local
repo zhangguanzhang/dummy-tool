@@ -1,0 +1,12 @@
+FROM alpine:3.13.2
+
+LABEL MAINTAINER="zhangguanzhang zhangguanzhang@qq.com" \
+    URL="https://github.com/zhangguanzhang/dummy-tool"
+
+COPY dummy-tool /dummy-tool
+
+RUN sed -i 's/dl-cdn.alpinelinux.org/mirrors.aliyun.com/g' /etc/apk/repositories && \
+    apk add --no-cache curl ca-certificates iproute2 && \
+    chmod a+x /dummy-tool
+
+ENTRYPOINT ["/dummy-tool"]
