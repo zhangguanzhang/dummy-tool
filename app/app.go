@@ -16,6 +16,7 @@ import (
 type Conf struct {
 	LocalIPs       []net.IP      // parsed ip addresses for the local cache agent to listen for dns requests
 	SetupInterface bool          // Indicates whether to setup network interface
+	ExitRemove      bool          // exit will remove the interface
 	InterfaceName  string        // Name of the interface to be created
 	Interval       time.Duration // specifies how often to run iptables rules check
 	HealthPort     string        // port for the healthcheck
@@ -109,12 +110,14 @@ func (c *App) TeardownNetworking() error {
 		// exitChan is a buffered channel of size 1, so this will not block
 		c.exitChan <- struct{}{}
 	}
-	var err error
-	if c.params.SetupInterface {
-		err = c.netifHandle.RemoveDummyDevice(c.params.InterfaceName)
+
+	if c.params.ExitRemove {
+		return c.netifHandle.RemoveDummyDevice(c.params.InterfaceName)
+	} else {
+		log.Printf("[INFO] Will not clean interface's settings and remov")
+		return nil
 	}
 
-	return err
 }
 
 func (c *App) healthCheck() func(ctx context.Context) error {
