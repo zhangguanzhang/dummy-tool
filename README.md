@@ -29,16 +29,97 @@ Run as a dummy interface tool at initContainer or a Container in kubernetes pod
     	comma-separated string of ip addresses to bind localdns process to
   -setup-interface
     	indicates whether network interface should be setup (default true)
+  -exit-remove
+        will remove the interface when exit (default true)
   -version
     	print version info and exit
 ```
 
-example run
+## example run
+
+### cli run
 
 ```mermaid
 /dummy-tool -local-ip 169.254.10.10,172.26.0.2 -health-port 8070
 
 /dummy-tool -local-ip 169.254.10.10 -health-port 8070
 
-/dummy-tool -local-ip 169.254.10.10 -health-port ""
+/dummy-tool -local-ip 169.254.10.10 -health-port=""
+```
+
+### docker-compose
+
+部署一个本地 dns
+
+`docker-compose.yml`:
+
+```mermaid
+version: '3.5'
+services:
+  dns: # port: tcp/80
+    image: coredns/coredns:1.8.3
+    hostname: coredns
+    restart: always
+    container_name: wps-coredns
+    network_mode: host
+    cap_drop:
+      - ALL
+    cap_add:
+      - NET_BIND_SERVICE
+    depends_on:
+    - dummy
+    volumes:
+      - ./coredns/:/etc/coredns
+      - /usr/share/zoneinfo/Asia/Shanghai:/etc/localtime:ro
+    command: ["-conf", "/etc/coredns/Corefile"]
+    logging:
+      driver: json-file
+      options:
+        max-file: '3'
+        max-size: 70m
+
+  dummy:
+    image: registry.aliyuncs.com/zhangguanzhang/dummy-tool:v0.1
+    hostname: dummy
+    restart: always
+    container_name: wps-dummy
+    network_mode: host
+    privileged: true
+    volumes:
+      - /usr/share/zoneinfo/Asia/Shanghai:/etc/localtime:ro
+    command: 
+    - -local-ip=169.254.20.10
+    - -check-interval=5s
+    - -health-port=
+    - -interface-name=nodelocaldns
+    - -setup-interface
+    - -exit-remove=false
+    logging:
+      driver: json-file
+      options:
+        max-file: '3'
+        max-size: 7m
+```
+
+`./coredns/Corefile`:
+
+```mermaid
+.:53 {
+    bind 169.254.20.10
+    errors
+    health :8079
+    hosts /etc/coredns/hosts {
+        no_reverse
+        reload 5s
+        fallthrough
+    }
+
+    prometheus :9153
+    forward . /etc/resolv.conf
+    cache 30
+    loop
+    reload
+    loadbalance
+}
+
 ```

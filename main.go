@@ -48,6 +48,7 @@ func parseAndValidateFlags() (*app.Conf, error) {
 	flag.StringVar(&LocalIPStr, "local-ip", "", "comma-separated string of ip addresses to bind localdns process to")
 	flag.StringVar(&params.HealthPort, "health-port", "8080", "port used by health check, ex: 0.0.0.0:8080")
 	flag.BoolVar(&params.SetupInterface, "setup-interface", true, "indicates whether network interface should be setup")
+	flag.BoolVar(&params.ExitRemove, "exit-remove", true, "will remove the interface when exit")
 	flag.StringVar(&params.InterfaceName, "interface-name", "nodelocaldns", "name of the interface to be created")
 	flag.DurationVar(&params.Interval, "check-interval", time.Second*5, "interval(in seconds) to check for interface status and addr")
 	flag.BoolVar(&versionPrt, "version", false, "print version info and exit")
