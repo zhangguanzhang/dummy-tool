@@ -1,11 +1,14 @@
-FROM alpine:3.13.2
+ARG BASE_IMG=alpine:3.13.6
+FROM ${BASE_IMG}
 
 LABEL MAINTAINER="zhangguanzhang zhangguanzhang@qq.com" \
     URL="https://github.com/zhangguanzhang/dummy-tool"
 
 COPY dummy-tool /dummy-tool
 
-RUN sed -i 's/dl-cdn.alpinelinux.org/mirrors.aliyun.com/g' /etc/apk/repositories && \
+RUN if [ -f /etc/apk/repositories ];then sed -i 's/dl-cdn.alpinelinux.org/mirrors.aliyun.com/g' /etc/apk/repositories; fi && \
+    if [ -f /etc/apt/sources.list ];then sed -ri 's/(deb|security).debian.org/mirrors.aliyun.com/g' /etc/apt/sources.list; fi && \
+    if [ ! -e /etc/nsswitch.conf ];then echo 'hosts: files dns myhostname' > /etc/nsswitch.conf; fi && \
     apk add --no-cache curl ca-certificates iproute2 && \
     chmod a+x /dummy-tool
 

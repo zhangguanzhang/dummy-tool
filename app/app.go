@@ -10,6 +10,7 @@ import (
 	"os"
 	"os/signal"
 	"strings"
+	"syscall"
 	"time"
 )
 
@@ -57,7 +58,9 @@ func (c *App) RunApp() {
 		}
 
 		sigCh := make(chan os.Signal)
-		signal.Notify(sigCh)
+		// https://github.com/zhangguanzhang/dummy-tool/issues/1
+		// should accept all signal
+		signal.Notify(sigCh, syscall.SIGINT, syscall.SIGTERM, syscall.SIGQUIT)
 		s := <-sigCh
 		// Unlikely to reach here, if we did it is because coremain exited and the signal was not trapped.
 		log.Printf("[INFO] Received signal: %s, tearing down", s.String())

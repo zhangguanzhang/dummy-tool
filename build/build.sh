@@ -2,10 +2,14 @@
 
 [ -n "$DEBUG" ] && set -x
 : ${GOARCH:=amd64}
+: ${MIPS64LE_IMG:=mips64le/debian:stable-slim}
+: ${build_arg:=}
 #脚本要存放在项目根目录
 readonly PRO_ROOT=$(cd $(dirname ${BASH_SOURCE:-$0})/../; pwd -P)
 source "${PRO_ROOT}/build/lib/var.sh"
-
+if [ "${GOARCH}" == 'mips64le' ];then
+  build_arg="--build-arg BASE_IMG=$MIPS64LE_IMG"
+fi
 
 read TAG_NUM LDFLAGS < <(BUILD::SetVersion)
 
@@ -30,7 +34,7 @@ case "$1" in
   "docker") #使用容器编译和打包
     docker build -t zhangguanzhang/dummy-tool:$TAG_NUM $build_arg \
       --build-arg LDFLAGS="${LDFLAGS}" \
-      --build-arg GOARCH=${GOARCH} \
+      --build-arg GOARCH=${GOARCH} $build_arg \
       -f ${Dockerfile:=Dockerfile} .
     [ -n "${DockerUser}" ] && {
       docker login -u "${DockerUser}" "${DockerPass}"
