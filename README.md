@@ -10,13 +10,13 @@ see file `build/build.sh`
 
 ## docker images
 
-```mermaid
+```
 registry.aliyuncs.com/zhangguanzhang/dummy-tool:v0.1
 ```
 
 ## 参数
 
-```mermaid
+```
 Usage of /dummy-tool:
 Run as a dummy interface tool at initContainer or a Container in kubernetes pod
   -check-interval duration
@@ -39,7 +39,7 @@ Run as a dummy interface tool at initContainer or a Container in kubernetes pod
 
 ### cli run
 
-```mermaid
+```
 /dummy-tool -local-ip 169.254.10.10,172.26.0.2 -health-port 8070
 
 /dummy-tool -local-ip 169.254.10.10 -health-port 8070
@@ -53,7 +53,7 @@ Run as a dummy interface tool at initContainer or a Container in kubernetes pod
 
 `docker-compose.yml`:
 
-```mermaid
+```yaml
 version: '3.5'
 services:
   dns: # port: tcp/80
@@ -103,7 +103,7 @@ services:
 
 `./coredns/Corefile`:
 
-```mermaid
+```
 .:53 {
     bind 169.254.20.10
     errors
