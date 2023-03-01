@@ -12,6 +12,8 @@ see file `build/build.sh`
 
 ```
 registry.aliyuncs.com/zhangguanzhang/dummy-tool:v0.1
+# https://cr.loongnix.cn/search  loongarch64 镜像
+registry.aliyuncs.com/zhangguanzhang/dummy-tool:v0.1-loong64
 ```
 
 ## 参数

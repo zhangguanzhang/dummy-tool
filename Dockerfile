@@ -1,5 +1,6 @@
 #https://basefas.github.io/2019/09/24/%E4%BD%BF%E7%94%A8%20Docker%20%E6%9E%84%E5%BB%BA%20Go%20%E5%BA%94%E7%94%A8/
-FROM golang:1.16.8 as mod
+ARG BUILD_IMG=golang:1.19
+FROM ${BUILD_IMG} as mod
 LABEL stage=mod
 ARG GOPROXY=https://goproxy.cn,https://mirrors.aliyun.com/goproxy/,https://goproxy.io,direct
 WORKDIR /root/myapp/
@@ -16,7 +17,7 @@ COPY ./ ./
 RUN CGO_ENABLED=0 GOOS=linux GOARCH=${GOARCH} go build -o dummy-tool -ldflags "${LDFLAGS}" main.go
 
 
-FROM alpine:3.13.6
+FROM alpine:3.16.4
 
 LABEL MAINTAINER="zhangguanzhang zhangguanzhang@qq.com" \
     URL="https://github.com/zhangguanzhang/dummy-tool"
