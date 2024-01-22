@@ -11,9 +11,9 @@ see file `build/build.sh`
 ## docker images
 
 ```
-registry.aliyuncs.com/zhangguanzhang/dummy-tool:v0.1
+registry.aliyuncs.com/zhangguanzhang/dummy-tool:v0.1.1
 # https://cr.loongnix.cn/search  loongarch64 镜像
-registry.aliyuncs.com/zhangguanzhang/dummy-tool:v0.1-loong64
+registry.aliyuncs.com/zhangguanzhang/dummy-tool:v0.1.1-loong64
 ```
 
 ## 参数
@@ -81,12 +81,13 @@ services:
         max-size: 70m
 
   dummy:
-    image: registry.aliyuncs.com/zhangguanzhang/dummy-tool:v0.1
+    image: registry.aliyuncs.com/zhangguanzhang/dummy-tool:v0.1.1
     hostname: dummy
     restart: always
     container_name: wps-dummy
     network_mode: host
-    privileged: true
+    cap_add:
+    - NET_ADMIN
     volumes:
       - /usr/share/zoneinfo/Asia/Shanghai:/etc/localtime:ro
     command: 

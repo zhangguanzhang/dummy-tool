@@ -1,4 +1,4 @@
-ARG BASE_IMG=golang:1.19
+ARG BASE_IMG=golang:1.20
 FROM ${BASE_IMG}
 
 LABEL MAINTAINER="zhangguanzhang zhangguanzhang@qq.com" \
@@ -6,10 +6,16 @@ LABEL MAINTAINER="zhangguanzhang zhangguanzhang@qq.com" \
 
 COPY dummy-tool /dummy-tool
 
-RUN if [ -f /etc/apk/repositories ];then sed -i 's/dl-cdn.alpinelinux.org/mirrors.aliyun.com/g' /etc/apk/repositories; fi && \
-    if [ -f /etc/apt/sources.list ];then sed -ri 's/(deb|security).debian.org/mirrors.aliyun.com/g' /etc/apt/sources.list; fi && \
-    if [ ! -e /etc/nsswitch.conf ];then echo 'hosts: files dns myhostname' > /etc/nsswitch.conf; fi && \
-    apk add --no-cache curl ca-certificates iproute2 && \
-    chmod a+x /dummy-tool
+RUN set -eux; \
+    if [ -f /etc/apk/repositories ];then sed -i 's/dl-cdn.alpinelinux.org/mirrors.aliyun.com/g' /etc/apk/repositories; fi; \
+    if [ -f /etc/apt/sources.list ];then sed -ri 's/(deb|security).debian.org/mirrors.aliyun.com/g' /etc/apt/sources.list; fi; \
+    if [ ! -e /etc/nsswitch.conf ];then echo 'hosts: files dns myhostname' > /etc/nsswitch.conf; fi; \
+    apk add --no-cache \
+        curl \
+        ca-certificates \
+        libcap \
+        su-exec \
+        iproute2;
 
-ENTRYPOINT ["/dummy-tool"]
+COPY docker-entrypoint.sh /docker-entrypoint.sh
+ENTRYPOINT ["sh", "/docker-entrypoint.sh"]

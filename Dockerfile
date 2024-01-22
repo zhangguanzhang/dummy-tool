@@ -1,5 +1,6 @@
 #https://basefas.github.io/2019/09/24/%E4%BD%BF%E7%94%A8%20Docker%20%E6%9E%84%E5%BB%BA%20Go%20%E5%BA%94%E7%94%A8/
-ARG BUILD_IMG=golang:1.19
+ARG BUILD_IMG=golang:1.20
+ARG RUN_IMG=alpine:3.18
 FROM ${BUILD_IMG} as mod
 LABEL stage=mod
 ARG GOPROXY=https://goproxy.cn,https://mirrors.aliyun.com/goproxy/,https://goproxy.io,direct
@@ -16,18 +17,23 @@ ARG GOARCH=amd64
 COPY ./ ./
 RUN CGO_ENABLED=0 GOOS=linux GOARCH=${GOARCH} go build -o dummy-tool -ldflags "${LDFLAGS}" main.go
 
-
-FROM alpine:3.16.4
+FROM ${RUN_IMG}
 
 LABEL MAINTAINER="zhangguanzhang zhangguanzhang@qq.com" \
     URL="https://github.com/zhangguanzhang/dummy-tool"
 
 COPY --from=builder /root/myapp/dummy-tool /dummy-tool
 
-RUN if [ -f /etc/apk/repositories ];then sed -i 's/dl-cdn.alpinelinux.org/mirrors.aliyun.com/g' /etc/apk/repositories; fi && \
-    if [ -f /etc/apt/sources.list ];then sed -ri 's/(deb|security).debian.org/mirrors.aliyun.com/g' /etc/apt/sources.list; fi && \
-    if [ ! -e /etc/nsswitch.conf ];then echo 'hosts: files dns myhostname' > /etc/nsswitch.conf; fi && \
-    apk add --no-cache curl ca-certificates iproute2 && \
-    chmod a+x /dummy-tool
+RUN set -eux; \
+    if [ -f /etc/apk/repositories ];then sed -i 's/dl-cdn.alpinelinux.org/mirrors.aliyun.com/g' /etc/apk/repositories; fi; \
+    if [ -f /etc/apt/sources.list ];then sed -ri 's/(deb|security).debian.org/mirrors.aliyun.com/g' /etc/apt/sources.list; fi; \
+    if [ ! -e /etc/nsswitch.conf ];then echo 'hosts: files dns myhostname' > /etc/nsswitch.conf; fi; \
+    apk add --no-cache \
+        curl \
+        ca-certificates \
+        libcap \
+        su-exec \
+        iproute2;
 
-ENTRYPOINT ["/dummy-tool"]
+COPY docker-entrypoint.sh /docker-entrypoint.sh
+ENTRYPOINT ["sh", "/docker-entrypoint.sh"]
