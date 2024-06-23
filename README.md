@@ -4,9 +4,6 @@
 
 参照 [node-cache](https://github.com/kubernetes/dns/tree/master/cmd/node-cache) 代码，扣出 dummy 接口的部分，可以用在 k8s 里 initContainer阶段设置一个 dummy 接口， 以及守护进程，kube-proxy 的 ipvs 模式就是把 svc 的 ip 配置在 dummy 接口上，然后 lvs 的 nat 规则。
 
-## 编译(build)
-
-see file `build/build.sh`
 
 ## docker images
 
